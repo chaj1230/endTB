@@ -5,23 +5,21 @@ library(ggplot2)
 library(cowplot)
 library(ggfortify)
 library(reshape)
-library(tidyverse)
 library(knitr)
 library(tibble)
 library(ggpmisc)
 library(tidyr)
 
-### dataframes from 2000 to 2018 by country
+### dataframes by country
 
-# master: all existing WHO data (includes TB incidence per 100,000 people)
+# master: all existing data from the WHO, 2000-2018 (includes TB incidence per 100,000 people)
 # master used in 001_TB_incidence_trends and 002_TB_projections
 master <- read.csv("who_ALL.csv")
 
-# pop: total population
-# process population for each of the 40 countries for years 2000-2035
-# store in dataframe pop_df
+# pop: population data and projections from the World Bank, 2000-2035
 # pop used in 002_TB_projections
 pop <- read.csv("population_ALL.csv")
+# tidy format
 keycol <- 'year'
 valuecol <- 'population'
 gathercols <- colnames(pop)[2:37]
@@ -51,6 +49,7 @@ prev <- gather_(master.prev, keycol, valuecol, gathercols)
 # get rid of the "X" (change X2001 to 2001)
 prev$year <- as.numeric(substr(prev$year, 2, 5))
 
+
 ### all_countries: list of the 40 high-burden countries of interest
 all_countries <- c("Angola","Bangladesh","Brazil","Botswana","Cambodia","Cameroon",
                    "Central African Republic","Chad","China","Congo",
@@ -73,29 +72,38 @@ names(years) <- c("Angola", "Bangladesh", "Botswana", "Brazil", "Cambodia", "Cam
 
 ### countries grouped by shape
 # used in 001_TB_incidence_trends
+
 # 14 linear decrease (Figure 1 from 001)
 linear_decrease <- c("Botswana", "Cambodia", "Cameroon", "Chad", "China", "Ethiopia", "Ghana", "India", "Indonesia", "Laos", "Thailand", "Vietnam", "Zambia", "Zimbabwe")
+
 # 4 increasing (Figure S1 from 001)
 increasing <- c("Angola", "Guinea-Bissau", "Liberia", "Mozambique")
-# 5 flat (Figure S2 from 001)
+
+#5 flat (Figure S2 from 001)
 flat <- c("Bangladesh", "Central African Republic", "Nigeria", "Democratic People's Republic of Korea", "Papua New Guinea")
+
 # 12 peak in the 2000s (Figure 2 from 001)
 peak_in_00s <- c('Angola', 'Cameroon', 'Congo', 'Eswatini', 'Kenya', 'Lesotho', 'Malawi', 'Namibia', 'Sierra Leone', 'South Africa', 'United Republic of Tanzania', 'Zimbabwe')
+
 # 8 "other" countries (Figures S4 and S5 from 001)
 other <- c("Brazil", "Democratic Republic of the Congo", "Myanmar", "Pakistan", "Philippines", "Republic of Korea", "Russian Federation", "Uganda")
 
 ### countries grouped by whether or not they are projected to meet targets
+
 # will meet
 projected_to_meet_target <- c("Botswana", "Eswatini", "Ethiopia", "Kenya", "Laos", "Lesotho", "Myanmar", "Namibia", "Republic of Korea", "Russian Federation", "South Africa", "United Republic of Tanzania", "Zambia", "Zimbabwe")
 
-# wont meet
+# won't meet
 projected_to_miss_target <- c("Angola", "Bangladesh", "Brazil", "Cambodia", "Cameroon", "Central African Republic", "Chad", "China", "Congo", "Democratic People's Republic of Korea", "Democratic Republic of the Congo", "Ghana", "Guinea-Bissau", "India", "Indonesia", "Liberia", "Malawi", "Mozambique", "Nigeria", "Pakistan", "Papua New Guinea", "Philippines", "Sierra Leone", "Thailand", "Uganda", "Vietnam")
+
 
 ### throw warning if input country is not in the 40 countries of interest 
 throwWarning <- function(country_name)
 {
-  if (country_name %in% all_countries == FALSE) warning('The input country is not among the 40 countries of interest')
+  if (country_name %in% all_countries == FALSE) 
+    warning('The input country is not among the 40 countries of interest')
 }
+
 
 ### shorten country name to fit in graph; use vernacular names
 # DRC, Central African Republic, Tanzania, Russia, South Korea, North Korea
