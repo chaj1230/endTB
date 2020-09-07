@@ -9,7 +9,7 @@ get_r2_and_coef <- function(country_name){
   
   # throw error if country_name not in master
   throwWarning(country_name)
-
+  
   one_country <- master %>% filter(country == country_name)
   linear_model <- lm(e_inc_100k ~ year, data = one_country)
   
@@ -25,7 +25,7 @@ get_r2_and_coef <- function(country_name){
     warning = function(w){
       return(NaN)
     }
-    )
+  )
   coefficient <- tryCatch(
     {
       coef <- summary(linear_model)$coefficients[2]
@@ -102,6 +102,13 @@ do.call(grid.arrange, all_plots)
 ## common axis titles
 y.grob <- textGrob("Incidence per 100k people", gp = gpar(col="black", fontsize=15), rot = 90)
 x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
+
+## all 
+
+all_plots <- lapply(all_countries, plot_trend, r2_res = r2_res)
+all_plots_g <- do.call(grid.arrange, all_plots)
+plot <- plot_grid(all_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 
 ###### generating figures
 
