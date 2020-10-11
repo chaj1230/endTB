@@ -9,7 +9,7 @@ prev_uncontrolled_hiv <- function(country_name){
   
   # throw warning if country_name not in master
   throwWarning(country_name)
-
+  
   country_arv <- arv %>% filter(country == country_name)
   hiv_prevalence <- (prev %>% filter(country == country_name))$hiv_prevalence
   
@@ -22,19 +22,19 @@ prev_uncontrolled_hiv <- function(country_name){
   
   # display graph with the legend:
   p <- ggplot(arv.prev, aes(year, y = value, colour = variable)) +
-      geom_point(aes(y = hiv_prevalence, col = "Total")) +
-      geom_point(aes(y = unc_hiv, col = "Uncontrolled")) +
-      ggtitle(country_name) +
-      #xlab("Year") + ylab("% Population") + 
-      theme(axis.title = element_blank()) +
-      # make legend horizontal in one row
-      guides(colour = guide_legend(ncol = 1)) +
-      # modify legend title
-      labs(colour = "HIV Prevalence (%)") +
-      ylim(0, NA)
+    geom_point(aes(y = hiv_prevalence, col = "Total")) +
+    geom_point(aes(y = unc_hiv, col = "Uncontrolled")) +
+    ggtitle(country_name) +
+    #xlab("Year") + ylab("% Population") + 
+    theme(axis.title = element_blank()) +
+    # make legend horizontal in one row
+    guides(colour = guide_legend(ncol = 1)) +
+    # modify legend title
+    labs(colour = "HIV Prevalence (%)") +
+    ylim(0, NA)
   
   p
-
+  
 }
 
 # without legend
@@ -63,5 +63,5 @@ dev.off()
 # generate the common legend
 grid.arrange(legend)
 g_legend <- plot_grid(legend, rel_heights = c(1, .1), ncol = 1, 
-                   align = 'v', axis = 'c')
+                      align = 'v', axis = 'c')
 g_legend
