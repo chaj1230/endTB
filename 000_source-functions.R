@@ -1,3 +1,4 @@
+library(mgcv) # gams
 library(dplyr)
 library(grid)
 library(gridExtra)
