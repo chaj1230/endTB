@@ -1,5 +1,4 @@
 # obtain TB incidence (per 100k) and TB number of cases by HIV status
-# run gam either with k=3 or k=4
 
 # call source file
 source("gam000_source-functions.R")
@@ -73,21 +72,21 @@ get_one_country_df <- function(country_name){
 # display tb incidence from 2000 to 2035 by hiv status
 # from 2000 to 2019 is WHO data; from 2020 to 2035 is predicted data
 # predicted data is calculated using gam from 2000
-predict_inc <- function(country_name, knots){
+predict_inc <- function(country_name){
   
   # get df of just that country (2000-2019 WHO reported data)
   df_actual <- get_one_country_df(country_name)
   #View(df_actual)
   df_actual <- df_actual %>% mutate(hiv_plus_nohiv = hiv_inc + nohiv_inc)
-
+  
   # for total TB incidence
-  fit_total <- gam(total_inc ~ s(year, k=knots), data = df_actual, bs="re")
+  fit_total <- gam(total_inc ~ s(year), data = df_actual, bs="cr")
   
   # for HIV+ TB incidence
-  fit_hiv <- gam(hiv_inc ~ s(year, k=knots), data = df_actual, bs="re")
+  fit_hiv <- gam(hiv_inc ~ s(year), data = df_actual, bs="cr")
   
   # for HIV- (nohiv) TB incidence
-  fit_nohiv <- gam(nohiv_inc ~ s(year, k=knots), data = df_actual, bs="re")
+  fit_nohiv <- gam(nohiv_inc ~ s(year), data = df_actual, bs="cr")
   
   # create empty df with same columns from years 2020 to 2035
   df_preds <- data.frame(year = 2020:2035, total_inc = 0, hiv_inc = 0, nohiv_inc = 0)
@@ -123,7 +122,6 @@ predict_inc <- function(country_name, knots){
 }
 
 ### validate to make sure predict_by_hiv numbers match with 002 YES! - 2021.03.
-### angola <- predict_inc("Angola", 3)
 ### angola[nrow(angola), ] # consistent with Table 2 gam
 
 ######################### TB NUMBER OF CASES #########################
@@ -131,10 +129,10 @@ predict_inc <- function(country_name, knots){
 # now that we know incidence of TB by HIV status 2000-2035, 
 # we want the actual NUMBER OF TB CASES by HIV status 2000-2035.
 # to do this, use population data
-predict_numb <- function(country_name, knots){
+predict_numb <- function(country_name){
   
   # get incidence predictions of that country from predict_inc, 2000-2035
-  predict_inc_output <- predict_inc(country_name, knots)
+  predict_inc_output <- predict_inc(country_name)
   inc_country <- predict_inc_output$df_incidence
   #View(inc_country)
   # get population of that country, 2000-2035 (worldbank data)
@@ -161,9 +159,9 @@ predict_numb <- function(country_name, knots){
 
 ############## GENERATE GRAPH LIKE FIG. 3, NOW INCLUDING PROJECTIONS THRU 2035 ##############
 
-tb_by_hiv_2035 <- function(country_name, knots){
+tb_by_hiv_2035 <- function(country_name){
   
-  predict_inc_output <- predict_inc(country_name, knots)
+  predict_inc_output <- predict_inc(country_name)
   df_actual <- predict_inc_output$df_actual
   df_preds <- predict_inc_output$df_preds
   inc_2015 <- df_actual[16,2]
@@ -200,12 +198,12 @@ tb_by_hiv_2035 <- function(country_name, knots){
 trAngola <- tb_by_hiv_2035("Angola", 3)
 
 # without legend
-tb_by_hiv_2035_no_legend <- function(country_name, knots){
-  tb_by_hiv_2035(country_name, knots) + theme(legend.position = "none")
+tb_by_hiv_2035_no_legend <- function(country_name){
+  tb_by_hiv_2035(country_name) + theme(legend.position = "none")
 }
 
 # try
-tb_by_hiv_2035_no_legend("Angola", 4)
+tb_by_hiv_2035_no_legend("Angola")
 
 # obtain common legend
 legend <- get_legend(trAngola)
@@ -219,44 +217,23 @@ x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 
 # generate graphs for the 15 countries of interest using lapply
 # meet targets
-# knots = 3
-g_knots3 <- lapply(meet_targets, tb_by_hiv_2035_no_legend, 3)
-g15_knots3 <- do.call(grid.arrange, g_knots3)
-plot_knots3 <- plot_grid(g15_knots3, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+# 
+g <- lapply(meet_targets, tb_by_hiv_2035_no_legend)
+g15 <- do.call(grid.arrange, g)
+plot <- plot_grid(g15, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file
-tiff(filename = "gam005_tb_hiv.meet_targets-knots3.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_knots3, left = y.grob, bottom = x.grob))
+tiff(filename = "cr_default_gam005_tb_hiv.meet_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
+grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
-
-# knots=4
-g_knots4 <- lapply(meet_targets, tb_by_hiv_2035_no_legend, 4)
-g15_knots4 <- do.call(grid.arrange, g_knots4)
-plot_knots4 <- plot_grid(g15_knots4, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-# create tiff file
-tiff(filename = "gam005_tb_hiv.meet_targets-knots4.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_knots4, left = y.grob, bottom = x.grob))
-dev.off()
-
 
 
 # miss targets
-# k=3
-gmiss_knots3 <- lapply(miss_targets, tb_by_hiv_2035_no_legend, 3)
-g15miss_knots3 <- do.call(grid.arrange, gmiss_knots3)
-plotmiss_knots3 <- plot_grid(g15miss_knots3, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+gmiss <- lapply(miss_targets, tb_by_hiv_2035_no_legend)
+g15miss <- do.call(grid.arrange, gmiss)
+plotmiss <- plot_grid(g15miss, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file
-tiff(filename = "gam005_tb_hiv_2000_2035.miss_targets-knots3.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plotmiss_knots3, left = y.grob, bottom = x.grob))
-dev.off()
-
-# miss targets
-# k=4
-gmiss_knots4 <- lapply(miss_targets, tb_by_hiv_2035_no_legend, 4)
-g15miss_knots4 <- do.call(grid.arrange, gmiss_knots4)
-plotmiss_knots4 <- plot_grid(g15miss_knots4, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-# create tiff file
-tiff(filename = "gam005_tb_hiv_2000_2035.miss_targets-knots4.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plotmiss_knots4, left = y.grob, bottom = x.grob))
+tiff(filename = "cr_default_gam005_tb_hiv.miss_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
+grid.arrange(arrangeGrob(plotmiss, left = y.grob, bottom = x.grob))
 dev.off()
 
 
@@ -290,8 +267,8 @@ count_excess <- function(a_country_name, target, numb){
 ################### COMBINE INCIDENCE AND NUMBER, 2000-2035 ###################
 
 # now, combine incidence and number into one table
-table_main <- function(country_name, knots){
-  predict_inc_output <- predict_inc(country_name, knots)
+table_main <- function(country_name){
+  predict_inc_output <- predict_inc(country_name)
   inc <- predict_inc_output$df_incidence
   numb <- predict_numb(country_name)
   count_excess(country_name, target, numb)
