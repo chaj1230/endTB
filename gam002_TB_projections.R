@@ -1,5 +1,4 @@
-# 2021-03-26 JC: altering smoothness -- 
-# experiment with setting knots (k) to 3 or to 4 in gam()
+# 2021-04-20 JC
 
 source("gam000_source-functions.R")
 
@@ -72,7 +71,8 @@ add_ci_to_predicted <- function(predicted_tb_inc, df_country){
 }
 
 # project TB incidence through 2035
-model_main <- function(country_name, knots){
+### keep knots default, and instead of "bs = re," do cubic splines "bs = cr"
+model_main <- function(country_name){
   
   # throw warning if input country is not one of the 40 of interest
   throwWarning(country_name)
@@ -80,9 +80,9 @@ model_main <- function(country_name, knots){
   # obtain data for just that country: year, TB incidence, low bound, high bound
   df_country <- master %>% filter(country == country_name) %>% 
     select(year, e_inc_100k, e_inc_100k_lo, e_inc_100k_hi)
-
-  # !!! fit gam, set knots 3 or 4
-  fit <- gam(e_inc_100k ~ s(year, k=knots), data = df_country, bs="re")
+  
+  # !!! fit gam, default knots
+  fit <- gam(e_inc_100k ~ s(year), data = df_country, bs="cr")
   
   # predict tb inc to 2035 based on gam
   predicted_tb_inc <- predict_tb_inc(fit)
@@ -181,46 +181,27 @@ stopifnot(length(unique(master$country)) == 40)
 y.grob <- textGrob("Incidence per 100k people", gp = gpar(col="black", fontsize=15), rot = 90)
 x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 
-## ## model for low HIV missing target - both k=3 or k=4
+# model for low HIV missing target
 low_hiv_meeting <- c('Ethiopia', 'Myanmar', 'Russian Federation', 'Republic of Korea', 'Laos')
 
-# k=3
-low_hiv_hit_target_countries_projection_k3 <- lapply(low_hiv_meeting, model_main, 3)
-hit_plots_k3 <- do.call(grid.arrange, low_hiv_hit_target_countries_projection_k3)
-plot_hit_k3 <- plot_grid(hit_plots_k3, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+low_hiv_hit_target_countries_projection <- lapply(low_hiv_meeting, model_main)
+hit_plots <- do.call(grid.arrange, low_hiv_hit_target_countries_projection)
+plot_hit <- plot_grid(hit_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file figure 3
-tiff(filename = "gam3_low_hiv_hit_target-knots3.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_hit_k3, left = y.grob, bottom = x.grob))
-dev.off()
-
-# k=4
-low_hiv_hit_target_countries_projection_k4 <- lapply(low_hiv_meeting, model_main, 4)
-hit_plots_k4 <- do.call(grid.arrange, low_hiv_hit_target_countries_projection_k4)
-plot_hit_k4 <- plot_grid(hit_plots_k4, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-# create tiff file figure 3
-tiff(filename = "gam3_low_hiv_hit_target-knots4.tiff", width = 6.75, height = 8, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_hit_k4, left = y.grob, bottom = x.grob))
+tiff(filename = "cr_default_gam3_low_hiv_hit_target.tiff", width = 6.75, height = 8, units = "in", res = 300)
+grid.arrange(arrangeGrob(plot_hit, left = y.grob, bottom = x.grob))
 dev.off()
 
 
-
-## model for low HIV missing target - both k=3 or k=4
+## model for low HIV missing target
 low_hiv_missing <- c('Bangladesh', 'Brazil', 'Cambodia', 'Central African Republic', 'Chad', 'China', 'Democratic Republic of the Congo', 'Ghana', 'Guinea-Bissau', 'India', 'Indonesia', 'Liberia', 'Mozambique', 'Nigeria', "Democratic People's Republic of Korea", 'Pakistan', 'Papua New Guinea', 'Philippines', 'Thailand', 'Vietnam')
-low_hiv_miss_target_countries_projection_k3 <- lapply(low_hiv_missing, model_main, 3)
-miss_plots_k3 <- do.call(grid.arrange, low_hiv_miss_target_countries_projection_k3)
-plot_miss_k3 <- plot_grid(miss_plots_k3, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-# k=4
-low_hiv_miss_target_countries_projection_k4 <- lapply(low_hiv_missing, model_main, 4)
-miss_plots_k4 <- do.call(grid.arrange, low_hiv_miss_target_countries_projection_k4)
-plot_miss_k4 <- plot_grid(miss_plots_k4, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+low_hiv_miss_target_countries_projection <- lapply(low_hiv_missing, model_main)
+miss_plots <- do.call(grid.arrange, low_hiv_miss_target_countries_projection)
+plot_miss <- plot_grid(miss_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 
 # create tiff file for figure 4
-tiff(filename = "gam4_miss_target-knots3.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_miss_k3, left = y.grob, bottom = x.grob))
-dev.off()
-
-tiff(filename = "gam4_miss_target-knots4.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_miss_k4, left = y.grob, bottom = x.grob))
+tiff(filename = "cr_default_gam4_miss_target.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
+grid.arrange(arrangeGrob(plot_miss, left = y.grob, bottom = x.grob))
 dev.off()
 
 ## for all countries
@@ -238,4 +219,3 @@ plot_all_k4 <- plot_grid(all_plots_k4, vjust = 1, scale = 1, ncol = 1, align = '
 tiff(filename = "gam_ALLprojections-knots4.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot_all_k4, left = y.grob, bottom = x.grob))
 dev.off()
-
