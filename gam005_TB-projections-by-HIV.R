@@ -61,7 +61,7 @@ get_one_country_df <- function(country_name){
   # add HIV negative (nohiv) TB incidence including low and high bound
   df_onecountry <- df_onecountry %>% 
     mutate(nohiv_inc = total_inc - hiv_inc)
-  #mutate(nohiv_inc_lo = total_inc_lo - hiv_inc_lo) %>% 
+  # mutate(nohiv_inc_lo = total_inc_lo - hiv_inc_lo) %>% 
   #mutate(nohiv_inc_hi = total_inc_hi - hiv_inc_hi)
   # returns df with 10 cols and 36 rows (2000-2035)
   #View(df_onecountry)
@@ -166,7 +166,7 @@ tb_by_hiv_2035 <- function(country_name){
   df_preds <- predict_inc_output$df_preds
   inc_2015 <- df_actual[16,2]
   df_target <- data.frame("year" = c(2015, 2020, 2025, 2030, 2035), "num" = c(inc_2015, inc_2015 * 0.8, inc_2015 * 0.5, inc_2015 * 0.2, inc_2015 * 0.1))
-  View(df_actual)
+  # View(df_actual)
   #View(df_preds)
   
   p <- ggplot() +
@@ -195,7 +195,7 @@ tb_by_hiv_2035 <- function(country_name){
   print(p)
 }
 
-trAngola <- tb_by_hiv_2035("Angola", 3)
+trAngola <- tb_by_hiv_2035("Angola")
 
 # without legend
 tb_by_hiv_2035_no_legend <- function(country_name){
@@ -208,8 +208,12 @@ tb_by_hiv_2035_no_legend("Angola")
 # obtain common legend
 legend <- get_legend(trAngola)
 
-meet_targets <- c('South Africa', 'Kenya', 'Zimbabwe', 'Lesotho', 'United Republic of Tanzania', 'Eswatini')
-miss_targets <- c('Botswana', 'Namibia', 'Zambia', 'Malawi', 'Cameroon', 'Congo', 'Sierra Leone', 'Uganda', 'Angola')
+# country names
+meet_targets <- c("Kenya", "Malawi", "Namibia")
+miss_targets <- c('Botswana',  'Cameroon','Congo','Eswatini',
+                  'Sierra Leone', 'South Africa', 
+                  'United Republic of Tanzania', 'Uganda','Zimbabwe')
+exclude <- c('Angola', 'Lesotho', 'Zambia')
 
 # axes labels
 y.grob <- textGrob("Incidence per 100k people", gp = gpar(col="black", fontsize=15), rot = 90)
@@ -217,25 +221,31 @@ x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 
 # generate graphs for the 15 countries of interest using lapply
 # meet targets
-# 
 g <- lapply(meet_targets, tb_by_hiv_2035_no_legend)
 g15 <- do.call(grid.arrange, g)
 plot <- plot_grid(g15, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file
-tiff(filename = "cr_default_gam005_tb_hiv.meet_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "Fig5_005_HIV.meet_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
-
 
 # miss targets
 gmiss <- lapply(miss_targets, tb_by_hiv_2035_no_legend)
 g15miss <- do.call(grid.arrange, gmiss)
 plotmiss <- plot_grid(g15miss, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file
-tiff(filename = "cr_default_gam005_tb_hiv.miss_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "Fig6_005_HIV.miss_targets.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plotmiss, left = y.grob, bottom = x.grob))
 dev.off()
 
+# excluded bc overfitting
+gexclude <- lapply(exclude, tb_by_hiv_2035_no_legend)
+g15exclude <- do.call(grid.arrange, gexclude)
+plotexclude <- plot_grid(g15exclude, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+# create tiff file
+tiff(filename = "FigSupp_005_HIV.excluded_overfitting.tiff", width = 6.75, height = 8, units = "in", res = 300)
+grid.arrange(arrangeGrob(plotexclude, left = y.grob, bottom = x.grob))
+dev.off()
 
 # generate the common legend
 tiff(filename = "005_tb_hiv_2000_2035_legend.tiff", width = 6.75, height = 8, units = "in", res = 300)
@@ -247,7 +257,7 @@ dev.off()
 
 ### Read in target
 
-target <- read.delim("002-output-targetnumb-for005-2021.03.tsv", sep = "\t")
+target <- read.delim("002-output-targetnumb-for005.tsv", sep = "\t")
 
 # want excess number of cases from 2020 to 2035
 # num is the predicted number of cases (with predict_numb)
@@ -261,7 +271,7 @@ count_excess <- function(a_country_name, target, numb){
   # View(total_numb_predicted)
   # View(total_numb_target)
   output <- data.frame(country_name = a_country_name, total_numb_predicted = total_numb_predicted, total_numb_target = total_numb_target, excess = total_numb_predicted - total_numb_target)
-  write_tsv(output, glue('{a_country_name}.excess_number_cases.tsv'))
+  write_tsv(output, glue('HIV excess numb {a_country_name}.tsv'))
 }
 
 ################### COMBINE INCIDENCE AND NUMBER, 2000-2035 ###################
@@ -275,7 +285,7 @@ table_main <- function(country_name){
   numb <- numb %>% select(total_numb, hiv_numb, nohiv_numb, hiv_plus_nohiv)
   country_df <- cbind(inc, numb)
   country_df <- country_df %>% add_column(country_name = country_name, .before = 0)
-  write_tsv(country_df, glue('{country_name}.gam005_hiv_and_non_hiv.tsv'))
+  write_tsv(country_df, glue('HIV projected numbs {country_name}.tsv'))
   return(country_df)
 }
 

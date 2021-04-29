@@ -71,19 +71,24 @@ hiv_15 <- c("Angola", "Botswana", "Cameroon", "Congo", "Eswatini", "Kenya", "Les
 ### countries grouped by shape
 ### --> will need to reconsider grouping with GAM
 # used in 001_TB_incidence_trends
-# 14 linear decrease (Figure 1 from 001)
-linear_decrease <- c("Botswana", "Cambodia", "Cameroon", "Chad", "China", "Ethiopia", "Ghana", "India", "Indonesia", "Laos", "Thailand", "Vietnam", "Zambia", "Zimbabwe")
-# 4 increasing (Figure S1 from 001)
-increasing <- c("Angola", "Guinea-Bissau", "Liberia", "Mozambique")
+# 12 linear decrease (Figure 1 from 001) # removed Cameroon and Zimbabwe
+linear_decrease <- c("Botswana", "Cambodia",  "Chad", "China", 
+                     "Ethiopia", "Ghana", "India", "Indonesia", "Laos", 
+                     "Thailand", "Vietnam", "Zambia")
+# 3 increasing (Figure S1 from 001) # removed Angola
+increasing <- c("Guinea-Bissau", "Liberia", "Mozambique")
 # 5 flat (Figure S2 from 001)
 flat <- c("Bangladesh", "Central African Republic", "Nigeria", "Democratic People's Republic of Korea", "Papua New Guinea")
-# 12 peak in the 2000s (Figure 2 from 001)
-peak_in_00s <- c('Angola', 'Cameroon', 'Congo', 'Eswatini', 'Kenya', 'Lesotho', 'Malawi', 'Namibia', 'Sierra Leone', 'South Africa', 'United Republic of Tanzania', 'Zimbabwe')
+# 12 peak in the 2000s (Figure 2 from 001) # removed Cameroon and Zimbabwe
+peak_in_00s <- c('Angola',"Cameroon", 'Congo', 'Eswatini', 'Kenya', 'Lesotho', 
+                 'Malawi', 'Namibia', 'Sierra Leone', 'South Africa', 
+                 'United Republic of Tanzania', "Zimbabwe")
 # 8 "other" countries (Figures S4 and S5 from 001)
-other <- c("Brazil", "Democratic Republic of the Congo", "Myanmar", "Pakistan", "Philippines", "Republic of Korea", "Russian Federation", "Uganda")
+other <- c("Brazil", "Democratic Republic of the Congo", "Myanmar", 
+           "Pakistan", "Philippines", "Republic of Korea", "Russian Federation", "Uganda")
 
 ### countries grouped by whether or not they are projected to meet targets
-### --> will need to modify with GAM
+
 # will meet
 projected_to_meet_target <- c("Botswana", "Eswatini", "Ethiopia", "Kenya", "Laos", "Lesotho", "Myanmar", "Namibia", "Republic of Korea", "Russian Federation", "South Africa", "United Republic of Tanzania", "Zambia", "Zimbabwe")
 

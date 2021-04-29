@@ -12,7 +12,7 @@ get_r2 <- function(country_name){
   
   # fit gam to 2000-2019 available data
   one_country <- master %>% filter(country == country_name)
-  gam_model <- gam(e_inc_100k ~ s(year), data = one_country, bs="re")
+  gam_model <- gam(e_inc_100k ~ s(year), data = df_country, bs="cr")
   
   ## tryCatch: run summary on the linear model
   ## and if summary returns a warning about the essentially perfect fit so summary
@@ -109,44 +109,40 @@ grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 
 ###### generating figures
 
-# 2021-03-26 note: may wish to change figure classifications based on GAM/WHO incidence estimate methods
-# Linear decrease (14 countries)
+# may wish to change figure classifications based on WHO incidence estimate methods
+# Linear decrease
 linear_decrease_plots <- lapply(linear_decrease, plot_trend, r2_res = r2_res)
 linear_decrease_plots_g <- do.call(grid.arrange, linear_decrease_plots)
 linear_decrease_plot <- plot_grid(linear_decrease_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
 # create tiff file figure 1
-tiff(filename = "gam1_linear.tiff", width = 6.75*1.2, height = 8*1.2, units = "in", res = 300)
+tiff(filename = "Fig1_001_linear_trend.tiff", width = 6.75*1.2, height = 8*1.2, units = "in", res = 300)
 grid.arrange(arrangeGrob(linear_decrease_plot, left = y.grob, bottom = x.grob))
 dev.off()
 
-# Increasing (4 countries)
+# Increasing
 increasing_plots <- lapply(increasing, plot_trend, r2_res = r2_res)
-increasing_plots_g <- do.call(grid.arrange, increasing_plots)
-plot <- plot_grid(increasing_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
+increasing_plots_g <- do.call(grid.arrange, c(increasing_plots, nrow=2))
+plot <- plot_grid(increasing_plots_g, vjust = 1, scale = 1, align = 'v', axis = 't')
 # create tiff file supplementary figure 1
-tiff(filename = "gamS1_increasing.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "FigS1_001_increasing_trend.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
 
-# Flat (no change) (5 countries)
+# Flat (no change)
 flat_plots <- lapply(flat, plot_trend, r2_res = r2_res)
 flat_plots_g <- do.call(grid.arrange, flat_plots)
 plot <- plot_grid(flat_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
 # create tiff file supplementary figure 2
-tiff(filename = "gamS2_flat.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "FigS2_001_flat_trend.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
 
-# Peak in 2000s (12 countries)
+# Peak in 2000s
 peak_in_00s_plots <- lapply(peak_in_00s, plot_trend, r2_res = r2_res)
 peak_in_00s_plots_g <- do.call(grid.arrange, peak_in_00s_plots)
 plot <- plot_grid(peak_in_00s_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
 # create tiff file figure 2
-tiff(filename = "gam2_peak00s.tiff", width = 6.75*1.1, height = 8*1.1, units = "in", res = 300)
+tiff(filename = "Fig2_001_peak00s_trend.tiff", width = 6.75*1.1, height = 8*1.1, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
 
@@ -154,9 +150,8 @@ dev.off()
 other_plots <- lapply(other, plot_trend, r2_res = r2_res)
 other_plots_g <- do.call(grid.arrange, other_plots)
 plot <- plot_grid(other_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
 # create tiff file supplementary figure 4
-tiff(filename = "gamS4_other.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "FigS4_001_other_trend.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
 
@@ -166,7 +161,7 @@ other_plots_no_ci_g <- do.call(grid.arrange, other_plots_no_ci)
 plot <- plot_grid(other_plots_no_ci_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 
 # create tiff file supplementary figure 5
-tiff(filename = "gamS5_other-noCI.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "FigS5_001_other_trend-noCI.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()
 
@@ -174,8 +169,7 @@ dev.off()
 all_plots <- lapply(all_countries, plot_trend, r2_res = r2_res)
 all_plots_g <- do.call(grid.arrange, all_plots)
 plot <- plot_grid(all_plots_g, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-
-# create tiff file supplementary figure 4
-tiff(filename = "gamS6_all.tiff", width = 6.75*1.6, height = 8.5*1.5, units = "in", res = 300)
+# create tiff file supplementary figure
+tiff(filename = "FigS6_001_ALL_trends.tiff", width = 6.75*1.6, height = 8.5*1.5, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot, left = y.grob, bottom = x.grob))
 dev.off()

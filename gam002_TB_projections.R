@@ -81,7 +81,7 @@ model_main <- function(country_name){
   df_country <- master %>% filter(country == country_name) %>% 
     select(year, e_inc_100k, e_inc_100k_lo, e_inc_100k_hi)
   
-  # !!! fit gam, default knots
+  # !!! fit gam, cr, default knots
   fit <- gam(e_inc_100k ~ s(year), data = df_country, bs="cr")
   
   # predict tb inc to 2035 based on gam
@@ -165,6 +165,9 @@ model_main <- function(country_name){
     ggtitle(country_name) 
   #annotation_custom(tableGrob(extra_cases, cols = NULL, rows = NULL, theme = ttheme_minimal(base_size = 8)), xmin = 2022, ymin = (max_inc_100k - (0.2*range_inc)))
   
+  # retrieve confidence interval
+  write_tsv(predicted_tb_inc, paste('confidence_interval', country_name))
+  
   trend
   
 }
@@ -182,40 +185,54 @@ y.grob <- textGrob("Incidence per 100k people", gp = gpar(col="black", fontsize=
 x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 
 # model for low HIV missing target
-low_hiv_meeting <- c('Ethiopia', 'Myanmar', 'Russian Federation', 'Republic of Korea', 'Laos')
+low_hiv_meeting <- c('Cambodia', 'Ethiopia', 'Russian Federation', 'Republic of Korea')
 
 low_hiv_hit_target_countries_projection <- lapply(low_hiv_meeting, model_main)
 hit_plots <- do.call(grid.arrange, low_hiv_hit_target_countries_projection)
 plot_hit <- plot_grid(hit_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 # create tiff file figure 3
-tiff(filename = "cr_default_gam3_low_hiv_hit_target.tiff", width = 6.75, height = 8, units = "in", res = 300)
+tiff(filename = "Fig3_002_noHIV_hit_target.tiff", width = 6.75, height = 8, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot_hit, left = y.grob, bottom = x.grob))
 dev.off()
 
 
 ## model for low HIV missing target
-low_hiv_missing <- c('Bangladesh', 'Brazil', 'Cambodia', 'Central African Republic', 'Chad', 'China', 'Democratic Republic of the Congo', 'Ghana', 'Guinea-Bissau', 'India', 'Indonesia', 'Liberia', 'Mozambique', 'Nigeria', "Democratic People's Republic of Korea", 'Pakistan', 'Papua New Guinea', 'Philippines', 'Thailand', 'Vietnam')
+low_hiv_missing <- c('Chad', 'China', 'Democratic Republic of the Congo', 
+                     'Ghana', 'Guinea-Bissau', 'India', 'Indonesia', 'Laos', 'Liberia', 
+                     'Mozambique', 'Myanmar',  'Pakistan', 'Philippines', 'Thailand', 'Vietnam')
 low_hiv_miss_target_countries_projection <- lapply(low_hiv_missing, model_main)
 miss_plots <- do.call(grid.arrange, low_hiv_miss_target_countries_projection)
 plot_miss <- plot_grid(miss_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
 
 # create tiff file for figure 4
-tiff(filename = "cr_default_gam4_miss_target.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
+tiff(filename = "Fig4_002_noHIV_miss_target.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
 grid.arrange(arrangeGrob(plot_miss, left = y.grob, bottom = x.grob))
 dev.off()
 
+
+######## make new supplementary figure of the six excluded
+low_hiv_exclude <- c('Bangladesh', 'Brazil', 'Central African Republic', 
+                     'Nigeria',"Democratic People's Republic of Korea",
+                     'Papua New Guinea')
+low_hiv_exclude_target_countries_projection <- lapply(low_hiv_exclude, model_main)
+exclude_plots <- do.call(grid.arrange, low_hiv_exclude_target_countries_projection)
+plot_exclude <- plot_grid(exclude_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+
+# create new supplementary figure of the six excluded
+tiff(filename = "FigSupp_002_noHIV_6EXCLUDED.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
+grid.arrange(arrangeGrob(plot_exclude, left = y.grob, bottom = x.grob))
+dev.off()
+
+
+
+
+
 ## for all countries
-# k=3
-all_countries_projection_k3 <- lapply(all_countries, model_main, 3)
-all_plots_k3 <- do.call(grid.arrange, all_countries_projection_k3)
-plot_all_k3 <- plot_grid(all_plots_k3, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-tiff(filename = "gam_ALLprojections-knots3.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_all_k3, left = y.grob, bottom = x.grob))
+all_countries_projection <- lapply(all_countries, model_main)
+all_plots <- do.call(grid.arrange, all_countries_projection)
+plot_all <- plot_grid(all_plots, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
+# output
+tiff(filename = "gam_ALLprojections.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
+grid.arrange(arrangeGrob(plot_all, left = y.grob, bottom = x.grob))
 dev.off()
-# k=4
-all_countries_projection_k4 <- lapply(all_countries, model_main, 4)
-all_plots_k4 <- do.call(grid.arrange, all_countries_projection_k4)
-plot_all_k4 <- plot_grid(all_plots_k4, vjust = 1, scale = 1, ncol = 1, align = 'v', axis = 't')
-tiff(filename = "gam_ALLprojections-knots4.tiff", width = 6.75*1.5, height = 8.75*1.5, units = "in", res = 300)
-grid.arrange(arrangeGrob(plot_all_k4, left = y.grob, bottom = x.grob))
-dev.off()
+
