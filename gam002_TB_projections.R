@@ -6,7 +6,8 @@ source("gam000_source-functions.R")
 predict_tb_inc <- function(fit){
   
   # insert predicted values to df using gam, given gam fit as input
-  predicted_tb_inc <- data.frame(year = seq(2000, 2035, 0.01), predict_value = 0)
+  # Jaeyoon - why was the increment 0.01?
+  predicted_tb_inc <- data.frame(year = seq(2000, 2035, 1), predict_value = 0)
   predicted_tb_inc$predict_value <- as.numeric(predict.gam(fit, predicted_tb_inc, year=predicted_tb_inc$year))
   
   # minimum incidence set to 10 per 100,000
@@ -128,6 +129,8 @@ model_main <- function(country_name){
     mutate(target_num_cases_dfses = (pred_num_cases_df$target_100k/100000)*as.numeric(pred_num_cases_df$pop))
   
   target_num_cases_df <- target_num_cases_df %>% add_column(country_name = country_name, .before = 0)
+  # there was a problem with target_num_cases_df$pred_num_100k being a named number datatype, so converted to normal numeric
+  target_num_cases_df$pred_num_100k <- as.numeric(target_num_cases_df$pred_num_100k)
   write_tsv(target_num_cases_df, paste('target_cases', country_name))
   
   # take the difference to find number of extra cases
@@ -186,6 +189,34 @@ x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 
 # model for low HIV missing target
 low_hiv_meeting <- c('Cambodia', 'Ethiopia', 'Russian Federation', 'Republic of Korea')
+model_main('Cambodia')
+
+run_bootstraps <- function(country_name, df_bootstrap) {
+  throwWarning(country_name)
+  
+  df_country <- df_bootstrap %>% filter(country == country_name) %>% filter(bootstrap == 2) %>%
+    select(year, bs_inc)
+  View(df_country)
+  # !!! fit gam, cr, default knots
+  fit <- gam(bs_inc ~ s(year), data = df_country, bs="cr")
+  
+  # predict tb inc to 2035 based on gam
+  predicted_tb_inc <- predict_tb_inc(fit)
+  View(predicted_tb_inc)
+  
+  trend <- ggplot() + geom_point(data = df_country, aes(x = year, y = bs_inc)) +
+    geom_line(aes(x = year, y = predict_value), data = predicted_tb_inc, colour = "blue", size = 1.2) +
+    
+    theme(axis.title = element_blank()) +
+    ggtitle(country_name) 
+  trend
+  
+}
+
+bootstraps <- read.csv("../../scripts_gam/datasets/bootstraps.csv")
+
+run_bootstraps('Cambodia', bootstraps)
+
 
 low_hiv_hit_target_countries_projection <- lapply(low_hiv_meeting, model_main)
 hit_plots <- do.call(grid.arrange, low_hiv_hit_target_countries_projection)

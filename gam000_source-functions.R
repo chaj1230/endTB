@@ -17,13 +17,13 @@ library(glue)
 
 # master: all existing WHO data (TB incidence per 100,000 people)
 # master used in 001_TB_incidence_trends and 002_TB_projections
-master <- read.csv("WHO-TB-2021-03-18.csv")
+master <- read.csv("datasets/WHO-TB-2021-03-18.csv")
 
 # pop: total population (estimated and projected from World Bank)
 # process population for each of the 40 countries for years 2000-2035
 # store in dataframe pop_df
 # pop used in 002_TB_projections
-pop <- read.csv("WB-Population-2021-03-20.csv")
+pop <- read.csv("datasets/WB-Population-2021-03-20.csv")
 keycol <- 'year'
 valuecol <- 'population'
 gathercols <- colnames(pop)[2:37]
@@ -33,7 +33,7 @@ pop$year <- as.numeric(substr(pop$year, 2, 5))
 
 # arv: HIV antiretroviral coverage (in %)
 # arv used in 003_HIV_TB
-master.arv <- read.csv("WB-ARVCoverage-upd2021-02-17.csv")
+master.arv <- read.csv("datasets/WB-ARVCoverage-upd2021-02-17.csv")
 # tidy format
 keycol <- 'year'
 valuecol <- 'hiv_coverage'
@@ -44,7 +44,7 @@ arv$year <- as.numeric(substr(arv$year, 2, 5))
 
 # prev: HIV prevalence (in %)
 # prev used in 003_HIV_TB
-master.prev <- read.csv("WB-HIVPrevalence-upd2021-02-17.csv")
+master.prev <- read.csv("datasets/WB-HIVPrevalence-upd2021-02-17.csv")
 # tidy format
 keycol <- 'year'
 valuecol <- 'hiv_prevalence'
