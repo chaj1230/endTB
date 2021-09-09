@@ -191,31 +191,6 @@ x.grob <- textGrob("Year", gp = gpar(fontface="bold", col="black", fontsize=15))
 low_hiv_meeting <- c('Cambodia', 'Ethiopia', 'Russian Federation', 'Republic of Korea')
 model_main('Cambodia')
 
-run_bootstraps <- function(country_name, df_bootstrap) {
-  throwWarning(country_name)
-  
-  df_country <- df_bootstrap %>% filter(country == country_name) %>% filter(bootstrap == 2) %>%
-    select(year, bs_inc)
-  View(df_country)
-  # !!! fit gam, cr, default knots
-  fit <- gam(bs_inc ~ s(year), data = df_country, bs="cr")
-  
-  # predict tb inc to 2035 based on gam
-  predicted_tb_inc <- predict_tb_inc(fit)
-  View(predicted_tb_inc)
-  
-  trend <- ggplot() + geom_point(data = df_country, aes(x = year, y = bs_inc)) +
-    geom_line(aes(x = year, y = predict_value), data = predicted_tb_inc, colour = "blue", size = 1.2) +
-    
-    theme(axis.title = element_blank()) +
-    ggtitle(country_name) 
-  trend
-  
-}
-
-bootstraps <- read.csv("../../scripts_gam/datasets/bootstraps.csv")
-
-run_bootstraps('Cambodia', bootstraps)
 
 
 low_hiv_hit_target_countries_projection <- lapply(low_hiv_meeting, model_main)
