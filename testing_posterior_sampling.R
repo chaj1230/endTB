@@ -50,9 +50,18 @@ for (i in seq_len(n)) {
 # get rid of the year column, and convert to matrix
 q <- as.matrix(output[, !names(output) %in% c("year")])
 # for each row (which is a year, bw 2000-2035), take the 95% CI of the 10000 pred incidence values
-s <- rowQuantiles(q, probs=c(.05, .95))
+s <- rowQuantiles(q, probs=c(.05, .95)) # taking 5th percentile + 95th percentile
 # combine the quantiles with the year
 ## p is dataframe of all the years 2000-2035
-s <- cbind(p, s)
+ci <- cbind(p, s)
 
+## PLOT
 
+# plot the actual data
+plot(df$year, df$inc, xlim = c(2000, 2035), ylim = c(0, 425))
+# plot the predicted data from GAM model
+lines(pp ~ year, data = p, col='red') # in 2035, pred is 111.4357
+
+# plot the 5% and 95% of the model when run 10000x times in blue
+lines(ci$year, ci$`5%`, col='blue') # in 2035, 5% is 100.8450
+lines(ci$year, ci$`95%`, col='blue') # in 2035, 95% is 121.6533
