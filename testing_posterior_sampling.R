@@ -1,6 +1,6 @@
-
 library(mgcv) # gams
 library("MASS") ## for mvrnorm
+library(matrixStats) # for rowQuantiles
 
 # going from here https://stats.stackexchange.com/questions/190348/can-i-use-bootstrapping-to-estimate-the-uncertainty-in-a-maximum-value-of-a-gam
 
@@ -32,9 +32,15 @@ mrand <- mvrnorm(n, beta, Vb)
 # make a copy of p for storing the outputs
 output <- p
 
+# transform linear predictor scale to response scale
+# ILINK is shorthand for "apply the inverse link transformation," converts the predicted values to the data scale
+# ilink() applies inverse of link fx
+ilink <- family(m)$linkinv
+
 # for each bootstrap
 # predict using the samples from the model posterior
 # and save the output
+i =1
 for (i in seq_len(n)) {
   pred   <- ilink(Xp %*% mrand[i, ])
   #opt[i] <- p$year[which.max(pred)]
@@ -43,9 +49,10 @@ for (i in seq_len(n)) {
 
 # get rid of the year column, and convert to matrix
 q <- as.matrix(output[, !names(output) %in% c("year")])
-# for each row (which is a year), take the 95% CI
+# for each row (which is a year, bw 2000-2035), take the 95% CI of the 10000 pred incidence values
 s <- rowQuantiles(q, probs=c(.05, .95))
 # combine the quantiles with the year
+## p is dataframe of all the years 2000-2035
 s <- cbind(p, s)
 
 
